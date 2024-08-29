@@ -34,6 +34,14 @@ pipeline {
             }
         }
 
+        stage('Run Shell Script') {
+            steps {
+                echo 'Running shell script...'
+                // Replace with the path to your shell script
+                sh './path/to/your-script.sh'
+            }
+        }
+
         stage('Deploy to Staging') {
             steps {
                 echo 'Deploying to staging environment...'
