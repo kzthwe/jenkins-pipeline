@@ -7,11 +7,29 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                script {
+                    echo 'Checking out source code...'
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Verify Directory Structure') {
+            steps {
+                script {
+                    echo 'Listing contents of workspace to verify directory structure...'
+                    sh 'ls -al'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
                     echo 'Building the code...'
-                    // Use Maven to clean and package the code
+                    // Ensure Maven is executed from the correct directory
                     sh "${MAVEN_HOME}/bin/mvn clean package"
                 }
             }
