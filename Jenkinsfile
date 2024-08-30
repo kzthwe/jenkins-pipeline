@@ -8,7 +8,7 @@ pipeline {
             steps {
                 script {
                     echo 'Building the code...'
-                    // Example: sh 'mvn clean package'
+                    sh 'mvn clean package'  // Maven is used as the build automation tool
                 }
             }
         }
@@ -16,7 +16,17 @@ pipeline {
             steps {
                 script {
                     echo 'Running unit and integration tests...'
-                    // Example: sh 'mvn test'
+                    sh 'mvn test'  // Maven is used for running tests
+                }
+            }
+            post {
+                always {
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline Test Stage: ${currentBuild.fullDisplayName}",
+                        body: "The test stage has completed.\n\nBuild URL: ${env.BUILD_URL}",
+                        attachmentsPattern: 'logs/*.log'
+                    )
                 }
             }
         }
@@ -24,7 +34,7 @@ pipeline {
             steps {
                 script {
                     echo 'Performing code analysis...'
-                    // Example: sh 'sonar-scanner'
+                    sh 'sonar-scanner'  // SonarQube is used for code analysis
                 }
             }
         }
@@ -32,7 +42,17 @@ pipeline {
             steps {
                 script {
                     echo 'Performing security scan...'
-                    // Example: sh 'snyk test'
+                    sh 'snyk test'  // Snyk is used for security scanning
+                }
+            }
+            post {
+                always {
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline Security Scan: ${currentBuild.fullDisplayName}",
+                        body: "The security scan stage has completed.\n\nBuild URL: ${env.BUILD_URL}",
+                        attachmentsPattern: 'logs/*.log'
+                    )
                 }
             }
         }
@@ -40,7 +60,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to staging server...'
-                    // Example: sh 'deploy-to-staging.sh'
+                    sh 'deploy-to-staging.sh'  // Example deployment script to staging (e.g., AWS EC2)
                 }
             }
         }
@@ -48,7 +68,7 @@ pipeline {
             steps {
                 script {
                     echo 'Running integration tests on staging...'
-                    // Example: sh 'run-integration-tests.sh'
+                    sh 'run-integration-tests.sh'  // Integration tests in a staging environment
                 }
             }
         }
@@ -56,31 +76,27 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to production server...'
-                    // Example: sh 'deploy-to-production.sh'
+                    sh 'deploy-to-production.sh'  // Example deployment script to production (e.g., AWS EC2)
                 }
             }
         }
     }
     post {
         success {
-            script {
-                echo 'Pipeline completed successfully. Sending success email...'
-                emailext(
-                    to: "${EMAIL_RECIPIENT}",
-                    subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
-                    body: "The pipeline has completed successfully.\n\nBuild URL: ${env.BUILD_URL}"
-                )
-            }
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
+                body: "The pipeline has completed successfully.\n\nBuild URL: ${env.BUILD_URL}",
+                attachmentsPattern: 'logs/*.log'
+            )
         }
         failure {
-            script {
-                echo 'Pipeline failed. Sending failure email...'
-                emailext(
-                    to: "${EMAIL_RECIPIENT}",
-                    subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
-                    body: "The pipeline has failed.\n\nBuild URL: ${env.BUILD_URL}"
-                )
-            }
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
+                body: "The pipeline has failed.\n\nBuild URL: ${env.BUILD_URL}",
+                attachmentsPattern: 'logs/*.log'
+            )
         }
     }
 }
