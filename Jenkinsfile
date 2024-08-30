@@ -63,20 +63,24 @@ pipeline {
     }
     post {
         success {
-            emailext(
-                to: "${EMAIL_RECIPIENT}",
-                subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
-                body: "The pipeline has completed successfully.\n\nBuild URL: ${env.BUILD_URL}",
-                attachmentsPattern: 'logs/*.log'
-            )
+            script {
+                echo 'Pipeline completed successfully. Sending success email...'
+                emailext(
+                    to: "${EMAIL_RECIPIENT}",
+                    subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
+                    body: "The pipeline has completed successfully.\n\nBuild URL: ${env.BUILD_URL}"
+                )
+            }
         }
         failure {
-            emailext(
-                to: "${EMAIL_RECIPIENT}",
-                subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
-                body: "The pipeline has failed.\n\nBuild URL: ${env.BUILD_URL}",
-                attachmentsPattern: 'logs/*.log'
-            )
+            script {
+                echo 'Pipeline failed. Sending failure email...'
+                emailext(
+                    to: "${EMAIL_RECIPIENT}",
+                    subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
+                    body: "The pipeline has failed.\n\nBuild URL: ${env.BUILD_URL}"
+                )
+            }
         }
     }
 }
