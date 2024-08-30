@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         EMAIL_RECIPIENT = 'katiekhinezt@gmail.com'
+        MAVEN_HOME = tool name: 'Maven 3.9.9', type: 'maven'
     }
 
     stages {
@@ -10,8 +11,8 @@ pipeline {
             steps {
                 script {
                     echo 'Building the code...'
-                    // Build the code using Maven
-                    sh 'mvn clean package'
+                    // Use Maven to clean and package the code
+                    sh "${MAVEN_HOME}/bin/mvn clean package"
                 }
             }
         }
@@ -20,9 +21,9 @@ pipeline {
             steps {
                 script {
                     echo 'Running unit and integration tests...'
-                    // Run unit tests and integration tests
-                    sh 'mvn test'
-                    sh 'mvn verify' // If using TestNG for integration tests
+                    // Run unit tests and integration tests using Maven
+                    sh "${MAVEN_HOME}/bin/mvn test"
+                    sh "${MAVEN_HOME}/bin/mvn verify" // Run integration tests if needed
                 }
             }
         }
@@ -51,8 +52,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to staging server...'
-                    // Deploy to staging server
-                    // Example command for AWS CLI
+                    // Deploy to staging server (e.g., AWS EC2 instance)
                     sh 'aws deploy push --application-name my-app --s3-location s3://my-bucket/my-app.zip'
                 }
             }
@@ -63,7 +63,6 @@ pipeline {
                 script {
                     echo 'Running integration tests on staging...'
                     // Run integration tests on staging environment
-                    // Example command for Selenium
                     sh 'selenium-server -role hub'
                 }
             }
@@ -73,8 +72,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to production server...'
-                    // Deploy to production server
-                    // Example command for AWS CLI
+                    // Deploy to production server (e.g., AWS EC2 instance)
                     sh 'aws deploy push --application-name my-app-prod --s3-location s3://my-bucket-prod/my-app.zip'
                 }
             }
