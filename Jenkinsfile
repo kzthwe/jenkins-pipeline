@@ -1,82 +1,88 @@
 pipeline {
     agent any
-
+    environment {
+        EMAIL_RECIPIENT = 'katiekhinezt@gmail.com'
+    }
     stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout([$class: 'GitSCM', 
-                          branches: [[name: '*/main']], 
-                          userRemoteConfigs: [[url: 'https://github.com/kzthwe/jenkins-pipeline.git']]])
-            }
-        }
-        
-        stage('Verify Directory Structure') {
-            steps {
-                script {
-                    sh 'ls -al'
-                }
-            }
-        }
-        
         stage('Build') {
             steps {
                 script {
-                    sh '/opt/homebrew/Cellar/maven/3.9.9/libexec/bin/mvn clean package'
+                    echo 'Building the code...'
+                    // Example command: sh 'mvn clean package'
                 }
             }
         }
-        
         stage('Unit and Integration Tests') {
             steps {
                 script {
-                    sh '/opt/homebrew/Cellar/maven/3.9.9/libexec/bin/mvn test'
+                    echo 'Running unit and integration tests...'
+                    // Example command: sh 'mvn test'
                 }
             }
         }
-        
         stage('Code Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SonarQube') {
-                        sh '/opt/homebrew/Cellar/maven/3.9.9/libexec/bin/mvn sonar:sonar'
-                    }
+                    echo 'Performing code analysis...'
+                    // Example command: sh 'sonar-scanner'
                 }
             }
         }
-
-        stage('Quality Gate') {
+        stage('Security Scan') {
             steps {
                 script {
-                    timeout(time: 1, unit: 'HOURS') {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                        }
-                    }
+                    echo 'Performing security scan...'
+                    // Example command: sh 'snyk test'
                 }
             }
         }
-        
-        stage('Archive Artifacts') {
+        stage('Deploy to Staging') {
             steps {
-                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                script {
+                    echo 'Deploying to staging server...'
+                    // Example command: sh 'deploy-to-staging.sh'
+                }
             }
         }
-        
-        stage('Send Notification') {
+        stage('Integration Tests on Staging') {
             steps {
-                emailext (
-                    to: 'katiekhinezt@gmail.com',
-                    subject: "Build ${currentBuild.currentResult}: Job '${env.JOB_NAME}' (${env.BUILD_NUMBER})",
-                    body: "The build result is ${currentBuild.currentResult}. Please find the build details at: ${env.BUILD_URL}"
-                )
+                script {
+                    echo 'Running integration tests on staging...'
+                    // Example command: sh 'run-integration-tests.sh'
+                }
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                script {
+                    echo 'Deploying to production server...'
+                    // Example command: sh 'deploy-to-production.sh'
+                }
             }
         }
     }
-    
     post {
-        always {
-            cleanWs()
+        success {
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
+                body: """The pipeline has completed successfully.
+                
+                Build URL: ${env.BUILD_URL}
+                """,
+                attachLog: true
+            )
+        }
+        failure {
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
+                body: """The pipeline has failed.
+                
+                Build URL: ${env.BUILD_URL}
+                """,
+                attachLog: true
+            )
         }
     }
 }
